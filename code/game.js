@@ -1,16 +1,11 @@
 const video = document.getElementById("camera");
 const arrow = document.getElementById("arrow");
-const stopBtn = document.getElementById("stop-navigation");
 const status = document.getElementById("status");
 const navigationInfo = document.getElementById("navigation-info");
 const currentInstruction = document.getElementById("current-instruction");
 const directionText = document.getElementById("direction-text");
 const distanceToTurn = document.getElementById("distance-to-turn");
 const totalDistance = document.getElementById("total-distance");
-const currentStepEl = document.getElementById("current-step");
-const headingValue = document.getElementById("heading-value");
-const stepBearing = document.getElementById("step-bearing");
-const relativeAngle = document.getElementById("relative-angle");
 
 let userLocation = null;
 let destination = { lat: 27.709238899431625, lng: 85.32558477122376 };
@@ -21,43 +16,63 @@ let routeSteps = [];
 let currentStepIndex = 0;
 let totalRouteDistance = 0;
 
-// Get simple direction text based on relative angle
-function getSimpleDirectionText(relativeAngle) {
-    // Normalize angle to 0-360
-    relativeAngle = ((relativeAngle % 360) + 360) % 360;
-
-    // Remove previous direction classes
-    directionText.classList.remove(
-        "direction-straight",
-        "direction-left",
-        "direction-right"
-    );
-
-    if (relativeAngle >= 345 || relativeAngle <= 15) {
-        directionText.classList.add("direction-straight");
-        return "Go Straight";
-    } else if (relativeAngle > 15 && relativeAngle <= 45) {
-        directionText.classList.add("direction-right");
-        return "Turn Slight Right";
-    } else if (relativeAngle > 45 && relativeAngle <= 135) {
-        directionText.classList.add("direction-right");
-        return "Turn Right";
-    } else if (relativeAngle > 135 && relativeAngle <= 180) {
-        directionText.classList.add("direction-right");
-        return "Turn Sharp Right";
-    } else if (relativeAngle > 180 && relativeAngle <= 225) {
-        directionText.classList.add("direction-left");
-        return "Turn Sharp Left";
-    } else if (relativeAngle > 225 && relativeAngle <= 315) {
-        directionText.classList.add("direction-left");
-        return "Turn Left";
-    } else if (relativeAngle > 315 && relativeAngle < 345) {
-        directionText.classList.add("direction-left");
-        return "Turn Slight Left";
+// Get direction based on relative angle to synchronize arrow and text
+function getDirectionAndRotation(currentStep, userLat, userLng, bearing) {
+    if (!currentStep) {
+        return {
+            text: "Continue Straight",
+            rotation: 0,
+            className: "direction-straight",
+        };
     }
 
-    directionText.classList.add("direction-straight");
-    return "Continue Straight";
+    // Calculate the angle we need to turn relative to current heading
+    let targetBearing = bearing;
+    let relativeAngle = targetBearing - deviceHeading;
+
+    // Normalize to -180 to 180 range
+    while (relativeAngle > 180) relativeAngle -= 360;
+    while (relativeAngle < -180) relativeAngle += 360;
+
+    // Determine direction text and styling based on the actual relative angle
+    // This ensures arrow direction and text are synchronized
+    let text, className;
+
+    if (relativeAngle >= -15 && relativeAngle <= 15) {
+        text = "Continue Straight";
+        className = "direction-straight";
+    } else if (relativeAngle > 15 && relativeAngle <= 45) {
+        text = "Turn Slight Right";
+        className = "direction-right";
+    } else if (relativeAngle > 45 && relativeAngle <= 135) {
+        text = "Turn Right";
+        className = "direction-right";
+    } else if (relativeAngle > 135 || relativeAngle <= -135) {
+        text = "Turn Around";
+        className = "direction-right";
+    } else if (relativeAngle < -45 && relativeAngle >= -135) {
+        text = "Turn Left";
+        className = "direction-left";
+    } else if (relativeAngle < -15 && relativeAngle >= -45) {
+        text = "Turn Slight Left";
+        className = "direction-left";
+    }
+
+    // For arrival, override with arrival message
+    if (currentStep.maneuver && currentStep.maneuver.type === "arrive") {
+        text = "Arrive at Destination";
+        className = "direction-straight";
+    }
+
+    // Arrow rotation - invert the angle to fix mirroring issue
+    // Positive angles should point right, negative angles should point left
+    let arrowRotation = -relativeAngle;
+
+    return {
+        text: text,
+        rotation: arrowRotation,
+        className: className,
+    };
 }
 
 // Start camera feed
@@ -93,12 +108,9 @@ function getCurrentLocation() {
     });
 }
 
-// Get route from OpenRouteService
+// Get route from OSRM
 async function getRoute(startLat, startLng, endLat, endLng) {
     try {
-        const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248YOUR_API_KEY&start=${startLng},${startLat}&end=${endLng},${endLat}&instructions=true&geometry=true`;
-
-        // Fallback to OSRM if OpenRouteService fails
         const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?steps=true&geometries=geojson`;
 
         const response = await fetch(osrmUrl);
@@ -240,21 +252,28 @@ function updateNavigation() {
         stepLng
     );
 
-    // Calculate relative angle (difference between where we need to go and where we're facing)
-    let relativeAngleToStep = bearingToStep - deviceHeading;
-    relativeAngleToStep = ((relativeAngleToStep % 360) + 360) % 360;
+    // Get direction and arrow rotation based on maneuver
+    const direction = getDirectionAndRotation(
+        currentStep,
+        userLocation.lat,
+        userLocation.lng,
+        bearingToStep
+    );
 
-    // Update arrow rotation
-    let arrowRotation = relativeAngleToStep;
+    // Remove previous direction classes
+    directionText.classList.remove(
+        "direction-straight",
+        "direction-left",
+        "direction-right"
+    );
 
-    // Get simple direction text based on relative angle
-    const directionInstruction =
-        getSimpleDirectionText(relativeAngleToStep);
+    // Add new direction class
+    directionText.classList.add(direction.className);
 
     // Update UI
-    arrow.style.transform = `translate(-50%, -50%) rotate(${arrowRotation}deg)`;
+    arrow.style.transform = `translate(-50%, -50%) rotate(${direction.rotation}deg)`;
     currentInstruction.textContent = currentStep.instruction;
-    directionText.textContent = directionInstruction;
+    directionText.textContent = direction.text;
 
     if (distanceToStep < 1000) {
         distanceToTurn.textContent = `In ${Math.round(
@@ -266,19 +285,13 @@ function updateNavigation() {
         )} km`;
     }
 
-    // Update debug info
-    currentStepEl.textContent = `${currentStepIndex + 1}/${routeSteps.length
-        }`;
-    headingValue.textContent = deviceHeading.toFixed(1);
-    stepBearing.textContent = bearingToStep.toFixed(1);
-    relativeAngle.textContent = relativeAngleToStep.toFixed(1);
-
     // Check if arrived
     if (currentStepIndex === routeSteps.length - 1 && distanceToStep < 50) {
         currentInstruction.textContent = "Arrived at Islington College!";
         directionText.textContent = "You have reached your destination";
         distanceToTurn.textContent = "You have reached your destination";
-        directionText.className = "direction-straight"; // Reset to neutral color
+        directionText.classList.remove("direction-left", "direction-right");
+        directionText.classList.add("direction-straight");
     }
 }
 
@@ -339,13 +352,6 @@ function startLocationTracking() {
     }
 }
 
-function stopLocationTracking() {
-    if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
-}
-
 function showError(message) {
     status.textContent = `Error: ${message}`;
     status.classList.add("error");
@@ -391,23 +397,6 @@ async function startNavigation() {
         showError(error.message);
     }
 }
-
-// Stop navigation
-stopBtn.addEventListener("click", () => {
-    isNavigating = false;
-    stopLocationTracking();
-    routeSteps = [];
-    currentStepIndex = 0;
-
-    arrow.style.transform = "translate(-50%, -50%) rotate(0deg)";
-    navigationInfo.style.display = "none";
-    status.textContent = "Navigation stopped";
-    directionText.classList.remove(
-        "direction-straight",
-        "direction-left",
-        "direction-right"
-    );
-});
 
 // Auto-start navigation on page load
 startNavigation();

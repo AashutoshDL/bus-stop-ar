@@ -43,20 +43,6 @@ video#camera {
   font-size: 14px;
 }
 
-#stop-navigation {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background: #f44336;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  z-index: 16;
-}
-
 #navigation-info {
   position: absolute;
   bottom: 20px;
@@ -102,19 +88,6 @@ video#camera {
   text-align: center;
   color: #ccc;
   margin-bottom: 15px;
-}
-
-#debug-info {
-  font-size: 12px;
-  color: #999;
-  border-top: 1px solid #444;
-  padding-top: 10px;
-}
-
-.instruction-icon {
-  font-size: 40px;
-  text-align: center;
-  margin-bottom: 10px;
 }
 
 .error {
