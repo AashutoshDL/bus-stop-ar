@@ -1,0 +1,139 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+video#camera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+#arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%) rotate(0deg);
+  z-index: 10;
+  transition: transform 0.3s ease-out;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+}
+
+#status {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  z-index: 15;
+  max-width: 400px;
+  font-size: 14px;
+}
+
+#stop-navigation {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background: #f44336;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  z-index: 16;
+}
+
+#navigation-info {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 15;
+  display: none;
+}
+
+#current-instruction {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4caf50;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#direction-text {
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #fff;
+  background: rgba(76, 175, 80, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #4caf50;
+  font-weight: bold;
+}
+
+#distance-to-turn {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #ffeb3b;
+}
+
+#total-distance {
+  font-size: 14px;
+  text-align: center;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+#debug-info {
+  font-size: 12px;
+  color: #999;
+  border-top: 1px solid #444;
+  padding-top: 10px;
+}
+
+.instruction-icon {
+  font-size: 40px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.error {
+  background: rgba(255, 0, 0, 0.9) !important;
+}
+
+.direction-straight {
+  background: rgba(76, 175, 80, 0.3) !important;
+  border-color: #4caf50 !important;
+}
+
+.direction-left {
+  background: rgba(255, 152, 0, 0.3) !important;
+  border-color: #ff9800 !important;
+  color: #ff9800 !important;
+}
+
+.direction-right {
+  background: rgba(33, 150, 243, 0.3) !important;
+  border-color: #2196f3 !important;
+  color: #2196f3 !important;
+}
