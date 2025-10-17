@@ -1,0 +1,24 @@
+services:
+    ick-news-ads:
+        build: .
+        container_name: ick-news-ads
+        ports:
+            - "8090:80"
+        volumes:
+            - ./html:/usr/share/nginx/html
+        restart: always
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:80"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+        networks:
+            - icknewsads_net
+
+networks:
+    icknewsads_net:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 10.210.0.0/16

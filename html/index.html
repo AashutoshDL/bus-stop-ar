@@ -1,93 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Islington Yatra: The AR Quest</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-rounded@master/dist/aframe-rounded.min.js"></script>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Islington Yatra: The AR Quest</title>
+        <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-rounded@master/dist/aframe-rounded.min.js"></script> -->
 
-    <link rel="stylesheet" href="./css/style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Quicksand:wght@300..700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <a-scene
-      mindar-image="imageTargetSrc: ./data/targets.mind; filterMinCF:0.0001; filterBeta: 0.005;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-      loading-screen="enabled: false"
-      id="arScene"
-    >
-      <a-assets>
-        <a-asset-item
-          id="buildingModelAsset"
-          src="./models/final-bus.glb"
-        ></a-asset-item>
-      </a-assets>
+        <link rel="stylesheet" href="./css/style.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Quicksand:wght@300..700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <a-scene
+            mindar-image="imageTargetSrc: ./data/targets.mind; filterMinCF:0.0001; filterBeta: 0.005;"
+            color-space="sRGB"
+            renderer="colorManagement: true, physicallyCorrectLights"
+            vr-mode-ui="enabled: false"
+            device-orientation-permission-ui="enabled: false"
+            loading-screen="enabled: false"
+            id="arScene"
+        >
+            <a-assets>
+                <a-asset-item
+                    id="buildingModelAsset"
+                    src="./models/final-bus.glb"
+                ></a-asset-item>
+            </a-assets>
 
-      <a-camera
-        position="0 0 0"
-        look-controls="enabled: false"
-        raycaster="near: 10; far: 10000; objects: .clickable"
-        cursor="fuse: false; rayOrigin: mouse;"
-      >
-      </a-camera>
+            <a-camera
+                position="0 0 0"
+                look-controls="enabled: false"
+                raycaster="near: 10; far: 10000; objects: .clickable"
+                cursor="fuse: false; rayOrigin: mouse;"
+            >
+            </a-camera>
 
-      <a-entity id="target" mindar-image-target="targetIndex: 0">
-        <!-- Container for the hover animation -->
-        <a-entity id="modelContainer" animation="loop: false">
-          <!-- First model (initially invisible) -->
-          <a-gltf-model
-            id="buildingModel"
-            src="#buildingModelAsset"
-            position="-0.1 -0.35 0"
-            scale="0.13 0.13 0.13"
-            rotation="0 0 0"
-            animation-mixer
-            class="model"
-            visible="true"
-            material="opacity: 0; transparent: true"
-          ></a-gltf-model>
-        </a-entity>
-      </a-entity>
-    </a-scene>
+            <a-entity id="target" mindar-image-target="targetIndex: 0">
+                <!-- Container for the hover animation -->
+                <a-entity id="modelContainer" animation="loop: false">
+                    <!-- First model (initially invisible) -->
+                    <a-gltf-model
+                        id="buildingModel"
+                        src="#buildingModelAsset"
+                        position="-0.1 -0.35 0"
+                        scale="0.13 0.13 0.13"
+                        rotation="0 0 0"
+                        animation-mixer
+                        class="model"
+                        visible="true"
+                        material="opacity: 0; transparent: true"
+                    ></a-gltf-model>
+                </a-entity>
+            </a-entity>
+        </a-scene>
 
-    <!--button for redirection-->
-    <button id="arActionButton" style="display: none" class="ar-button">
-      <a href="./code/game.html">Start AR Quest</a>
-    </button>
+        <!--button for redirection-->
+        <button id="arActionButton" style="display: none" class="ar-button">
+            <a href="./code/game.html">Start AR Quest</a>
+        </button>
 
-    <!-- Improved loading screen with better UX -->
-    <div id="loadingScreen" class="loading-container">
-      <h1 class="title">Welcome <b>Islington Yatra: The AR Quest</b></h1>
-      <div class="spinner-container">
-        <div class="spinner"></div>
-      </div>
-      <p id="loadingStatus" class="subtitle">Initializing AR experience...</p>
-      <p class="subtitle-error">
-        ⚠️ <strong>Caution:</strong> When scanning the image make sure to be
-        aware of your surroundings
-      </p>
-      <p class="camera-notice">
-        📷 This app will request access to your camera for the AR experience.
-        Please allow access.
-      </p>
-      <div id="errorContainer"></div>
-    </div>
+        <!-- Improved loading screen with better UX -->
+        <div id="loadingScreen" class="loading-container">
+            <h1 class="title">Welcome <b>Islington Yatra: The AR Quest</b></h1>
+            <div class="spinner-container">
+                <div class="spinner"></div>
+            </div>
+            <p id="loadingStatus" class="subtitle">
+                Initializing AR experience...
+            </p>
+            <p class="subtitle-error">
+                ⚠️ <strong>Caution:</strong> When scanning the image make sure
+                to be aware of your surroundings
+            </p>
+            <p class="camera-notice">
+                📷 This app will request access to your camera for the AR
+                experience. Please allow access.
+            </p>
+            <div id="errorContainer"></div>
+        </div>
 
-    <!-- Status indicator for AR tracking -->
-    <!-- <div id="statusIndicator" class="status-indicator" style="display: none">
+        <!-- Status indicator for AR tracking -->
+        <!-- <div id="statusIndicator" class="status-indicator" style="display: none">
       Searching for target...
     </div> -->
-    <script src="./script/script.js"></script>
-  </body>
+        <script src="./script/script.js"></script>
+    </body>
 </html>
