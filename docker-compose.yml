@@ -1,7 +1,7 @@
 services:
-    ick-news-ads:
+    bus-stop-ar:
         build: .
-        container_name: ick-news-ads
+        container_name: bus-stop-ar
         ports:
             - "8090:80"
         volumes:
@@ -14,10 +14,10 @@ services:
             retries: 3
             start_period: 10s
         networks:
-            - icknewsads_net
+            - busstopar_net
 
 networks:
-    icknewsads_net:
+    busstopar_net:
         driver: bridge
         ipam:
             config:
