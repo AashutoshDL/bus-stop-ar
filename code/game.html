@@ -1,26 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Navigating to Islington College</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Navigation - Direction Pointer</title>
     <link rel="stylesheet" href="./game.css" />
   </head>
   <body>
     <video id="camera" autoplay playsinline></video>
-    <img id="arrow" src="https://cdn-icons-png.flaticon.com/512/32/32195.png" />
+    <canvas id="arrowCanvas"></canvas>
 
-    <div id="status">Starting navigation to Islington College...</div>
+    <div id="status">Starting navigation...</div>
+    <div id="debug-info"></div>
 
     <div id="navigation-info">
-      <div id="current-instruction">Calculating route...</div>
-      <div id="direction-text">Please wait</div>
-      <div id="distance-to-turn">Please wait</div>
-      <div id="total-distance">Total distance: --</div>
+      <div id="direction-text">Initializing...</div>
     </div>
 
+    <div id="celebration">
+      <div class="celebration-emoji">🎉🎊</div>
+      <div>Congratulations!</div>
+      <div style="font-size: 1.2rem; margin-top: 10px">
+        You've arrived at your destination!
+      </div>
+    </div>
+
+    <!-- Three.js + GLTFLoader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- Main script -->
     <script src="./game.js"></script>
   </body>
 </html>

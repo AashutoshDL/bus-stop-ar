@@ -1,50 +1,48 @@
-class ARExperience {
-    constructor() {
-        this.isInitialized = false;
-        this.targetFound = false;
-        this.loadingScreen = document.getElementById("loadingScreen");
-        this.loadingStatus = document.getElementById("loadingStatus");
-        this.errorContainer = document.getElementById("errorContainer");
-        this.statusIndicator = document.getElementById("statusIndicator");
-        this.buildingModel = null;
-        this.target = null;
-        this.modelContainer = null;
-        this.arScene = document.getElementById("arScene");
-        this.arButton = document.getElementById("arActionButton");
+function createARExperience() {
+    // --- State ---
+    let targetFound = false;
+    let buildingModel = null;
+    let target = null;
+    let modelContainer = null;
+    let videoElement = null;
 
-        this.init();
-    }
+    // --- Elements ---
+    const loadingScreen = document.getElementById("loadingScreen");
+    const loadingStatus = document.getElementById("loadingStatus");
+    const errorContainer = document.getElementById("errorContainer");
+    const statusIndicator = document.getElementById("statusIndicator");
+    const arScene = document.getElementById("arScene");
+    const arButton = document.getElementById("arActionButton");
 
-    async init() {
+    // --- Initialization ---
+    async function init() {
         try {
-            await this.requestCameraPermission();
-            this.setupEventListeners();
-            this.updateLoadingStatus("Setting up AR scene...");
+            await requestCameraPermission();
+            setupEventListeners();
+            updateLoadingStatus("Setting up AR scene...");
         } catch (error) {
-            this.handleError("Failed to initialize AR experience", error);
+            handleError("Failed to initialize AR experience", error);
         }
     }
 
-    async requestCameraPermission() {
-        this.updateLoadingStatus("Requesting camera permission...");
+    // --- Camera Permission ---
+    async function requestCameraPermission() {
+        updateLoadingStatus("Requesting camera permission...");
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: "environment", // Prefer rear camera for AR
-                },
+                video: { facingMode: "environment" },
             });
 
             console.log("Camera access granted");
-            this.updateLoadingStatus("Camera access granted ✓");
+            updateLoadingStatus("Camera access granted ✓");
 
-            // Stop the stream as MindAR will handle camera access
+            // Stop the stream (MindAR will handle camera access)
             stream.getTracks().forEach((track) => track.stop());
-
             return true;
         } catch (error) {
             console.error("Camera access denied", error);
-            this.showError(
+            showError(
                 "Camera access is required for AR experience. Please enable camera access and refresh the page.",
                 error
             );
@@ -52,180 +50,165 @@ class ARExperience {
         }
     }
 
-    setupEventListeners() {
-        // Wait for scene to be ready before accessing entities
-        this.arScene.addEventListener("loaded", () => {
-            this.onSceneLoaded();
-        });
+    // --- Event Listeners ---
+    function setupEventListeners() {
+        arScene.addEventListener("loaded", onSceneLoaded);
+        arScene.addEventListener("error", (event) =>
+            handleError("AR scene failed to load", event.detail)
+        );
 
-        // Handle scene loading errors
-        this.arScene.addEventListener("error", (event) => {
-            this.handleError("AR scene failed to load", event.detail);
-        });
-
-        this.arButton.addEventListener("click", () => {
-            alert("You have now begun the AR Quest !!!")
-        });
+        if (arButton) {
+            arButton.addEventListener("click", () => {
+                alert("You have now begun the AR Quest !!!");
+            });
+        }
     }
 
-    onSceneLoaded() {
+    // --- Scene Loaded ---
+    function onSceneLoaded() {
         try {
-            this.buildingModel = document.getElementById("buildingModel");
-            this.modelContainer = document.getElementById("modelContainer");
-            this.target = document.getElementById("target");
-            this.videoElement = document.getElementById("videoAsset");
+            buildingModel = document.getElementById("buildingModel");
+            modelContainer = document.getElementById("modelContainer");
+            target = document.getElementById("target");
+            videoElement = document.getElementById("videoAsset");
 
-            if (!this.buildingModel || !this.target || !this.modelContainer) {
+            if (!buildingModel || !target || !modelContainer) {
                 throw new Error("Required AR elements not found");
             }
 
-            this.setupTargetEvents();
-            this.hideLoadingScreen();
-            this.showStatusIndicator();
-
+            setupTargetEvents();
+            hideLoadingScreen();
+            showStatusIndicator();
             console.log("AR experience ready");
         } catch (error) {
-            this.handleError("Failed to setup AR components", error);
+            handleError("Failed to setup AR components", error);
         }
     }
 
-    setupTargetEvents() {
-        // Target found event
-        this.target.addEventListener("targetFound", (event) => {
+    // --- Target Events ---
+    function setupTargetEvents() {
+        target.addEventListener("targetFound", () => {
             console.log("Target found");
-            this.targetFound = true;
-            this.showModel();
-            this.updateStatusIndicator("Target Found!", "status-found");
-            if (this.arButton) {
-                this.arButton.style.display = "block";
-            }
+            targetFound = true;
+            showModel();
+            updateStatusIndicator("Target Found!", "status-found");
+            if (arButton) arButton.style.display = "block";
         });
 
-        // Target lost event
-        this.target.addEventListener("targetLost", (event) => {
+        target.addEventListener("targetLost", () => {
             console.log("Target lost");
-            this.targetFound = false;
-            this.hideModel();
-            this.updateStatusIndicator(
-                "Searching for target...",
-                "status-searching"
-            );
-            if (this.arButton) {
-                this.arButton.style.display = "none";
-            }
+            targetFound = false;
+            hideModel();
+            updateStatusIndicator("Searching for target...", "status-searching");
+            if (arButton) arButton.style.display = "none";
         });
     }
 
-    showModel() {
-        if (this.buildingModel && this.modelContainer) {
-            this.buildingModel.setAttribute("visible", "true");
+    // --- Model Display ---
+    function showModel() {
+        if (buildingModel && modelContainer) {
+            buildingModel.setAttribute("visible", "true");
+            buildingModel.setAttribute("material", "opacity: 1; transparent: true");
 
-            this.buildingModel.setAttribute("material", "opacity: 1; transparent: true");
-
-            // Stop any currently running animations first
-            this.stopModelAnimations();
-
-            // Start only the model's pre-baked GLTF animations (play once)
-            setTimeout(() => {
-                this.playModelAnimations();
-            }, 100); // Small delay to ensure model is visible
+            stopModelAnimations();
+            setTimeout(playModelAnimations, 100);
         }
     }
 
-    hideModel() {
-        if (this.buildingModel) {
-            this.buildingModel.setAttribute("visible", "false");
-            // Stop animations when target is lost
-            this.stopModelAnimations();
+    function hideModel() {
+        if (buildingModel) {
+            buildingModel.setAttribute("visible", "false");
+            stopModelAnimations();
         }
     }
 
-    playModelAnimations() {
-        // Play only the model's built-in GLTF animations once
-        if (this.buildingModel) {
-            this.buildingModel.setAttribute("animation-mixer", {
-                clip: "*", // Play all animation clips in the model
-                loop: "once", // Play only once
+    // --- Animations ---
+    function playModelAnimations() {
+        if (buildingModel) {
+            buildingModel.setAttribute("animation-mixer", {
+                clip: "*",
+                loop: "once",
                 repetitions: 1,
                 timeScale: 1,
-                clampWhenFinished: true // Keep the final frame when animation completes
+                clampWhenFinished: true,
             });
             console.log("Model GLTF animations started (play once, will stay at final frame)");
         }
-        // Note: No spinning animation added to the container
     }
 
-    stopModelAnimations() {
-        // Stop only the model's GLTF animations
-        if (this.buildingModel) {
-            this.buildingModel.removeAttribute("animation-mixer");
+    function stopModelAnimations() {
+        if (buildingModel) {
+            buildingModel.removeAttribute("animation-mixer");
         }
         console.log("Model animations stopped");
     }
 
-    updateLoadingStatus(message) {
-        if (this.loadingStatus) {
-            this.loadingStatus.textContent = message;
+    // --- UI Helpers ---
+    function updateLoadingStatus(message) {
+        if (loadingStatus) {
+            loadingStatus.textContent = message;
             console.log("Loading status:", message);
         }
     }
 
-    hideLoadingScreen() {
-        if (this.loadingScreen) {
-            this.loadingScreen.classList.add("fade-out");
+    function hideLoadingScreen() {
+        if (loadingScreen) {
+            loadingScreen.classList.add("fade-out");
             setTimeout(() => {
-                this.loadingScreen.style.display = "none";
+                loadingScreen.style.display = "none";
             }, 500);
         }
     }
 
-    showStatusIndicator() {
-        if (this.statusIndicator) {
-            this.statusIndicator.style.display = "block";
-            this.updateStatusIndicator(
-                "Searching for target...",
-                "status-searching"
-            );
+    function showStatusIndicator() {
+        if (statusIndicator) {
+            statusIndicator.style.display = "block";
+            updateStatusIndicator("Searching for target...", "status-searching");
         }
     }
 
-    updateStatusIndicator(text, statusClass) {
-        if (this.statusIndicator) {
-            this.statusIndicator.textContent = text;
-            this.statusIndicator.className = `status-indicator ${statusClass}`;
+    function updateStatusIndicator(text, statusClass) {
+        if (statusIndicator) {
+            statusIndicator.textContent = text;
+            statusIndicator.className = `status-indicator ${statusClass}`;
         }
     }
 
-    showError(message, error = null) {
+    function showError(message, error = null) {
         const errorDiv = document.createElement("div");
         errorDiv.className = "error-message";
         errorDiv.innerHTML = `
             <strong>Error:</strong> ${message}
-            ${error
-                ? `<br><small>Technical details: ${error.message || error
-                }</small>`
-                : ""
-            }
-          `;
-
-        if (this.errorContainer) {
-            this.errorContainer.appendChild(errorDiv);
+            ${error ? `<br><small>Technical details: ${error.message || error}</small>` : ""}
+        `;
+        if (errorContainer) {
+            errorContainer.appendChild(errorDiv);
         }
     }
 
-    handleError(message, error) {
+    function handleError(message, error) {
         console.error(message, error);
-        this.showError(message, error);
-        this.updateLoadingStatus("❌ " + message);
+        showError(message, error);
+        updateLoadingStatus("❌ " + message);
     }
+
+    // --- Return exposed controls (optional) ---
+    return {
+        init,
+        showModel,
+        hideModel,
+        playModelAnimations,
+        stopModelAnimations,
+    };
 }
 
 // Initialize AR experience when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-    new ARExperience();
+    const arExperience = createARExperience();
+    arExperience.init();
 });
 
-// Handle page visibility changes to pause/resume AR
+// Handle page visibility changes
 document.addEventListener("visibilitychange", () => {
     const scene = document.getElementById("arScene");
     if (scene) {
